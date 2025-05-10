@@ -8,7 +8,7 @@
               <cms-contact-item
               *ngFor="let contact of contacts"
               [contact]="contact"
-              (contactselected)="onContactSelected(contact)"></cms-contact-item>
+              (click)="onSelected(contact)"></cms-contact-item>
             </div>
           </div>
 </div>
