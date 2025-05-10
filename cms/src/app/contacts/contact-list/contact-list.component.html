@@ -6,9 +6,9 @@
         <div class="row">
             <div class="col-xs-12">
               <cms-contact-item
-              *ngFor="let contactEl of contacts"
-              [contact]="contactEl"
-              (contactSelected)="onContactSelected(contactEl)"></cms-contact-item>
+              *ngFor="let contact of contacts"
+              [contact]="contact"
+              (contactselected)="onContactSelected(contact)"></cms-contact-item>
             </div>
           </div>
 </div>
