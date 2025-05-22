@@ -9,9 +9,9 @@ import { ContactService } from '../../contacts/contact.service';
   templateUrl: './message-item.component.html',
   styleUrl: './message-item.component.css'
 })
-export class MessageItemComponent implements OnInit{
+export class MessageItemComponent implements OnInit {
   @Input() message!: Message;
-  messageSender?: string;
+  messageSender!: string;
 
   constructor(private contactService: ContactService) {}
 
