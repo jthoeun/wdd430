@@ -11,7 +11,7 @@ import { Subscription } from 'rxjs';
 })
 export class DocumentListComponent implements OnInit, OnDestroy {
   @Output() selectedDocumentEvent = new EventEmitter();
-  subscription: Subscription;
+  subscription!: Subscription;
 
   documents: Document[] = [];
 

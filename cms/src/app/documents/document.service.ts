@@ -33,6 +33,7 @@ export class DocumentService {
       this.documents.splice(pos, 1)
       this.documentListChangedEvent.next(this.documents.slice());
    }
+  }
    
    getMaxId(): number {
     let maxId = 0;
@@ -54,25 +55,15 @@ export class DocumentService {
         newDoc === null ||
         newDoc === undefined ||
         original === null ||
-        orginal === undefined
+        original === undefined
       ) {
         return;
       }
-      const pos = this.documents.indexOf(orginal);
+      const pos = this.documents.indexOf(original);
       if (pos < 0) return;
 
-      newDoc.id = orginal.id;
+      newDoc.id = original.id;
       this.documents[pos] = newDoc;
       this.documentListChangedEvent.next(this.documents.slice());  
     }
-}
-
-
-
-
-
-}
-function getMaxId() {
-  throw new Error('Function not implemented.');
-}
-
+  }
