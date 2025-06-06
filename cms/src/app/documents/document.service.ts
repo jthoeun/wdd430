@@ -51,12 +51,7 @@ export class DocumentService {
       this.documentListChangedEvent.next(this.documents.slice());
     }
     updateDocument(original: Document, newDoc: Document) {
-    if (
-        newDoc === null ||
-        newDoc === undefined ||
-        original === null ||
-        original === undefined
-      ) {
+    if (!original || !newDoc) {
         return;
       }
       const pos = this.documents.indexOf(original);
