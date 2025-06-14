@@ -3,12 +3,23 @@
         <h3 class="panel-title pull-left">Contacts</h3>
         <a routerLink="new" class="btn-success btn-sm pull-right">New Contact</a>
     </div>
-        <div class="row">
-            <div class="col-xs-12">
-              <cms-contact-item
-              *ngFor="let contact of contacts"
-              [contact]="contact"
-              ></cms-contact-item>
+    <div class="row">
+        <div class="col-xs-12">
+            <div 
+                cdkDropList
+                [cdkDropListData]="contacts"
+                class="contact-list-container"
+                style="min-height: 60px;">
+                <div 
+                    *ngFor="let contact of contacts"
+                    cdkDrag
+                    [cdkDragData]="contact"
+                    class="draggable-contact">
+                    <cms-contact-item
+                        [contact]="contact">
+                    </cms-contact-item>
+                </div>
             </div>
-          </div>
+        </div>
+    </div>
 </div>

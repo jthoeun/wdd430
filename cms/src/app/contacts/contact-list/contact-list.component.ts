@@ -2,6 +2,7 @@ import { Component,  OnDestroy,  OnInit } from '@angular/core';
 import { Contact } from '../contact.model';
 import { ContactService } from '../contact.service';
 import { Subscription } from 'rxjs';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'cms-contact-list',
@@ -27,4 +28,9 @@ export class ContactListComponent implements OnInit, OnDestroy{
     this.subsciption.unsubscribe();
   }
 
+  onDrop(event: CdkDragDrop<Contact[]>) {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(this.contacts, event.previousIndex, event.currentIndex);
+    }
+  }
 }
