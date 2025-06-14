@@ -82,6 +82,7 @@
             id="groupList"
             cdkDropList
             [cdkDropListData]="groupContacts"
+            cdkDropListConnectedTo="contactList"
             (cdkDropListDropped)="addToGroup($event)"
             style="min-height: 3rem; border: 1px solid #ccc; padding: 1rem;"
           >
@@ -105,6 +106,10 @@
             <span class="dragMsg" *ngIf="groupContacts!.length < 1">
               Drag contacts in group here
             </span>
+          </div>
+          
+          <div class="alert alert-warning" *ngIf="errorMessage" style="margin-top: 10px;">
+            {{ errorMessage }}
           </div>
         </div>
       </div>

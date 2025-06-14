@@ -17,6 +17,7 @@ export class ContactEditComponent implements OnInit {
   groupContacts: Contact[] = [];
   editMode: boolean = false;
   id!: string;
+  errorMessage: string = '';
 
   constructor (
     private contactService: ContactService,
@@ -29,7 +30,6 @@ export class ContactEditComponent implements OnInit {
       this.id = params['id'];
       if (!this.id) {
         this.editMode = false;
-        // Initialize empty contact for new contact creation
         this.contact = new Contact('', '', '', '', '', []);
         this.groupContacts = [];
         return;
@@ -63,12 +63,19 @@ export class ContactEditComponent implements OnInit {
   }
 
   onCancel() {
+    this.clearError();
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
   addToGroup(event: CdkDragDrop<Contact[]>) {
     const selectedContact: Contact = event.item.data;
-    if (this.isInvalidContact(selectedContact)) return;
+    
+    if (this.isInvalidContact(selectedContact)) {
+      this.showError(selectedContact);
+      return;
+    }
+    
+    this.clearError();
     this.groupContacts.push(selectedContact);
   }
 
@@ -76,6 +83,20 @@ export class ContactEditComponent implements OnInit {
     if (!newContact) return true;
     if (this.contact && newContact.id === this.contact.id) return true;
     return this.groupContacts.some(c => c.id === newContact.id);
+  }
+
+  showError(contact: Contact) {
+    if (!contact) {
+      this.errorMessage = 'Invalid contact selected.';
+    } else if (this.contact && contact.id === this.contact.id) {
+      this.errorMessage = 'Cannot add a contact to its own group.';
+    } else {
+      this.errorMessage = `${contact.name} is already in the group.`;
+    }
+  }
+
+  clearError() {
+    this.errorMessage = '';
   }
 
   onRemoveItem(index: number) {
