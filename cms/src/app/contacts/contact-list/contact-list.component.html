@@ -1,27 +1,52 @@
-<div class="panel panel-default">
-    <div class="panel-heading clearfix">
-        <h3 class="panel-title pull-left">Contacts</h3>
-        <a routerLink="new" class="btn-success btn-sm pull-right">New Contact</a>
+<div class="container-fluid">
+  <div class="row contact-list-header container-fluid">
+    <div class="row">
+      <div class="col-xs-8 vcenter">
+        <h2>Contacts</h2>
+      </div>
     </div>
     <div class="row">
-        <div class="col-xs-12">
-            <div 
-                cdkDropList
-                cdkDropListId="contactList"
-                [cdkDropListData]="contacts"
-                cdkDropListConnectedTo="groupList"
-                class="contact-list-container"
-                style="min-height: 60px;">
-                <div 
-                    *ngFor="let contact of contacts"
-                    cdkDrag
-                    [cdkDragData]="contact"
-                    class="draggable-contact">
-                    <cms-contact-item
-                        [contact]="contact">
-                    </cms-contact-item>
-                </div>
-            </div>
+      <div class="col-xs-8">
+        <div class="input-group">
+          <input
+            class="form-control"
+            type="text"
+            (keyup)="search(searchBox.value)"
+            placeholder="Enter a search value"
+            #searchBox
+          />
+          <div class="input-group-addon input-search-btn">
+            <div
+              class="glyphicon glyphicon-search input-group-text"
+              (click)="search(searchBox.value)"
+            ></div>
+          </div>
         </div>
+      </div>
+      <div class="col-xs-4">
+        <a class="btn btn-success" [routerLink]="['new']">New Contact</a>
+      </div>
     </div>
+  </div>
+  <div class="row contact-list-container">
+    <div class="col-xs-12">
+      <div 
+        cdkDropList
+        cdkDropListId="contactList"
+        [cdkDropListData]="contacts"
+        cdkDropListConnectedTo="groupList"
+        class="contact-list-container"
+        style="min-height: 60px;">
+        <div 
+          *ngFor="let contact of contacts | contactsFliter: term"
+          cdkDrag
+          [cdkDragData]="contact"
+          class="draggable-contact">
+          <cms-contact-item
+            [contact]="contact">
+          </cms-contact-item>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
