@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -23,9 +24,6 @@ import { ContactEditComponent } from './contacts/contact-edit/contact-edit.compo
 import { FormsModule } from '@angular/forms';
 import { ContactsFliterPipe } from './contacts/contacts-fliter.pipe';
 
-
-
-
 @NgModule({
   declarations: [
     AppComponent,
@@ -45,16 +43,14 @@ import { ContactsFliterPipe } from './contacts/contacts-fliter.pipe';
     DocumentEditComponent,
     ContactEditComponent,
     ContactsFliterPipe
-    
-    
- 
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     DropdownDirective,
     FormsModule,
-    DragDropModule
+    DragDropModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]
