@@ -4,12 +4,22 @@ var path = require('path');
 var http = require('http');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var mongoose = require('mongoose'); 
 
 // Routes files
 const index = require("./server/routes/app");
 const messageRoute = require("./server/routes/messages");
 const contactRoute = require("./server/routes/contacts");
 const documentRoutes = require("./server/routes/documents");
+
+// establish a connection to the mongo database
+mongoose.connect('mongodb://localhost:27017/cms', { useNewUrlParser: true })
+  .then(() => {
+    console.log('Connected to database!');
+  })
+  .catch((err) => {
+    console.log('Connection failed: ' + err);
+  });
 
 var app = express(); // create an instance of express
 
