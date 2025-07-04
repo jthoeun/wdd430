@@ -10,11 +10,11 @@ router.get('/', async (req, res, next) => {
    try {
      const messages = await Message.find();
      
-     // Manually populate sender using the custom id field
+     
      for (let message of messages) {
        if (message.sender) {
          const contact = await Contact.findOne({"id": message.sender});
-         message.sender = contact; // Replace string ID with full contact object
+         message.sender = contact;
        }
      }
      

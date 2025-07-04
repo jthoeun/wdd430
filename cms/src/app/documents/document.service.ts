@@ -15,7 +15,7 @@ export class DocumentService {
   private maxDocumentId!: number;
 
   constructor(private http: HttpClient) {
-    this.getDocuments();
+  
   }
 
   // GET REQUEST
@@ -24,7 +24,7 @@ export class DocumentService {
       .get<{message: string, documents: Document[]}>(this.documentsUrl)
       .subscribe({
         next: (response) => {
-          this.documents = response.documents || []; // Extract documents array from response
+          this.documents = response.documents || []; 
           this.maxDocumentId = this.getMaxId();
           this.documents.sort((a, b) => {
             if (a.name < b.name) return -1;
@@ -61,7 +61,7 @@ export class DocumentService {
       return;
     }
 
-    // make sure id of the new Document is empty
+    
     document.id = '';
 
     const headers = new HttpHeaders({'Content-Type': 'application/json'});
@@ -72,7 +72,7 @@ export class DocumentService {
       { headers: headers })
       .subscribe(
         (responseData) => {
-          // add new document to documents
+          
           this.documents.push(responseData.document);
           this.sortAndSend();
         }
@@ -93,7 +93,7 @@ export class DocumentService {
       return;
     }
 
-    // set the id of the new Document to the id of the old Document
+    
     newDocument.id = originalDocument.id;
     (newDocument as any)._id = (originalDocument as any)._id;
 
@@ -104,8 +104,14 @@ export class DocumentService {
       newDocument, { headers: headers })
       .subscribe(
         () => {
+          
           this.documents[pos] = newDocument;
           this.sortAndSend();
+          
+          
+          setTimeout(() => {
+            this.getDocuments();
+          }, 100);
         }
       );
   }

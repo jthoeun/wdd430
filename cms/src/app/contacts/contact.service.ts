@@ -60,7 +60,7 @@ export class ContactService {
       return;
     }
 
-    // make sure id of the new Contact is empty
+    
     contact.id = '';
 
     const headers = new HttpHeaders({'Content-Type': 'application/json'});
