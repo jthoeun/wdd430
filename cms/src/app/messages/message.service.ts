@@ -13,7 +13,6 @@ export class MessageService {
   private maxMessageId: number = 0;
 
   constructor(private http: HttpClient) {
-    // Don't call getMessages automatically - let components call it when needed
   }
 
   // GET Request
@@ -22,9 +21,8 @@ export class MessageService {
       .get<{message: string, messages: Message[]}>(this.messagesUrl)
       .subscribe({
         next: (response) => {
-          this.messages = response.messages || []; // Extract messages array from response
+          this.messages = response.messages || []; 
           this.maxMessageId = this.getMaxId();
-          // Sort by ID to put newest messages at bottom
           this.messages.sort((a, b) => {
             if (+a.id < +b.id) return -1;
             if (+a.id > +b.id) return 1;
@@ -70,7 +68,7 @@ export class MessageService {
       { headers: headers })
       .subscribe(
         (responseData) => {
-          // Refresh the entire message list to get properly populated sender data
+          
           this.getMessages();
         }
       );
@@ -90,7 +88,7 @@ export class MessageService {
       return;
     }
 
-    // set the id of the new Message to the id of the old Message
+ 
     newMessage.id = originalMessage.id;
     (newMessage as any)._id = (originalMessage as any)._id;
 
@@ -136,7 +134,6 @@ export class MessageService {
   }
 
   private sortAndSend() {
-    // Sort by ID to put newest messages at bottom
     this.messages.sort((a, b) => {
       if (+a.id < +b.id) return -1;
       if (+a.id > +b.id) return 1;
