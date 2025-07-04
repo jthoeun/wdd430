@@ -13,7 +13,7 @@ const contactRoute = require("./server/routes/contacts");
 const documentRoutes = require("./server/routes/documents");
 
 // establish a connection to the mongo database
-mongoose.connect('mongodb://localhost:27017/cms', { useNewUrlParser: true })
+mongoose.connect('mongodb://localhost:27017/cms')
   .then(() => {
     console.log('Connected to database!');
   })

@@ -1,30 +1,41 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Subject } from 'rxjs';
 import { Message } from './message.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MessageService {
-  messageChangedEvent = new EventEmitter<Message[]>();
-  private messagesUrl = 'https://wdd430-cms-2309e-default-rtdb.firebaseio.com/messages.json';
+  messageChangedEvent = new Subject<Message[]>();
+  private messagesUrl = 'http://localhost:3000/messages';
   private messages: Message[] = [];
   private maxMessageId: number = 0;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Don't call getMessages automatically - let components call it when needed
+  }
 
   // GET Request
   getMessages(): Message[] {
-    this.http.get<Message[]>(this.messagesUrl).subscribe((msgs: Message[]) => {
-      this.messages = msgs;
-      this.maxMessageId = this.getMaxId();
-      this.messages.sort((a, b) => {
-        if (a < b) return -1;
-        if (a > b) return 1;
-        return 0;
+    this.http
+      .get<{message: string, messages: Message[]}>(this.messagesUrl)
+      .subscribe({
+        next: (response) => {
+          this.messages = response.messages || []; // Extract messages array from response
+          this.maxMessageId = this.getMaxId();
+          // Sort by ID to put newest messages at bottom
+          this.messages.sort((a, b) => {
+            if (+a.id < +b.id) return -1;
+            if (+a.id > +b.id) return 1;
+            return 0;
+          });
+          this.messageChangedEvent.next(this.messages.slice());
+        },
+        error: (error: any) => {
+          console.log(error);
+        }
       });
-      this.messageChangedEvent.next(this.messages.slice());
-    });
     return this.messages.slice();
   }
 
@@ -36,24 +47,84 @@ export class MessageService {
       })
       .subscribe(() => {
         this.messages.sort((a, b) => {
-          if (a < b) return -1;
-          if (a > b) return 1;
+          if (+a.id < +b.id) return -1;
+          if (+a.id > +b.id) return 1;
           return 0;
         });
         this.messageChangedEvent.next(this.messages.slice());
       });
   }
 
-  addMessage(newMessage: Message) {
-    if (newMessage === null || newMessage === undefined) return;
-    this.maxMessageId++;
-    newMessage.id = `${this.maxMessageId}`;
-    this.messages.push(newMessage);
-    this.storeMessages();
+  addMessage(message: Message) {
+    if (!message) {
+      return;
+    }
+
+    message.id = '';
+
+    const headers = new HttpHeaders({'Content-Type': 'application/json'});
+
+    // add to database
+    this.http.post<{ message: string, messageDoc: Message }>('http://localhost:3000/messages',
+      message,
+      { headers: headers })
+      .subscribe(
+        (responseData) => {
+          // Refresh the entire message list to get properly populated sender data
+          this.getMessages();
+        }
+      );
   }
 
   getMessage(id: string): Message {
     return this.messages.find((m) => m.id === id)!;
+  }
+
+  updateMessage(originalMessage: Message, newMessage: Message) {
+    if (!originalMessage || !newMessage) {
+      return;
+    }
+
+    const pos = this.messages.findIndex(m => m.id === originalMessage.id);
+    if (pos < 0) {
+      return;
+    }
+
+    // set the id of the new Message to the id of the old Message
+    newMessage.id = originalMessage.id;
+    (newMessage as any)._id = (originalMessage as any)._id;
+
+    const headers = new HttpHeaders({'Content-Type': 'application/json'});
+
+    // update database
+    this.http.put('http://localhost:3000/messages/' + originalMessage.id,
+      newMessage, { headers: headers })
+      .subscribe(
+        () => {
+          this.messages[pos] = newMessage;
+          this.sortAndSend();
+        }
+      );
+  }
+
+  deleteMessage(message: Message) {
+    if (!message) {
+      return;
+    }
+
+    const pos = this.messages.findIndex(m => m.id === message.id);
+    if (pos < 0) {
+      return;
+    }
+
+    // delete from database
+    this.http.delete('http://localhost:3000/messages/' + message.id)
+      .subscribe(
+        () => {
+          this.messages.splice(pos, 1);
+          this.sortAndSend();
+        }
+      );
   }
 
   getMaxId(): number {
@@ -62,5 +133,15 @@ export class MessageService {
       if (+m.id > maxId) maxId = +m.id;
     });
     return maxId;
+  }
+
+  private sortAndSend() {
+    // Sort by ID to put newest messages at bottom
+    this.messages.sort((a, b) => {
+      if (+a.id < +b.id) return -1;
+      if (+a.id > +b.id) return 1;
+      return 0;
+    });
+    this.messageChangedEvent.next(this.messages.slice());
   }
 }
