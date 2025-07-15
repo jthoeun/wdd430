@@ -1,1 +1,166 @@
-<p>deck-list works!</p>
+<!-- src/app/components/deck-list/deck-list.component.html -->
+<div class="container-fluid">
+  <!-- Header Section -->
+  <div class="card card-pokemon mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">
+          <i class="bi bi-collection me-2"></i>My Decks
+        </h2>
+        <button type="button" 
+                class="btn btn-pokemon btn-lg" 
+                (click)="createNewDeck()">
+          <i class="bi bi-plus-circle me-2"></i>Create New Deck
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+      <span class="visually-hidden">Loading decks...</span>
+    </div>
+    <p class="mt-3 h5">Loading your decks...</p>
+  </div>
+
+  <!-- Decks Grid -->
+  <div *ngIf="!loading && decks.length > 0" class="row g-4">
+    <div class="col-xl-4 col-lg-6 col-md-6" *ngFor="let deck of decks">
+      <div class="card card-pokemon h-100 deck-card">
+        <!-- Deck Header -->
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0" [title]="deck.name">
+            <i class="bi bi-stack me-2"></i>
+            <span class="deck-name">{{ deck.name }}</span>
+          </h5>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false">
+              <i class="bi bi-three-dots-vertical"></i>
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <button class="dropdown-item" (click)="editDeck(deck)">
+                  <i class="bi bi-pencil me-2"></i>Edit
+                </button>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <button class="dropdown-item text-danger" (click)="deleteDeck(deck)">
+                  <i class="bi bi-trash me-2"></i>Delete
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Deck Body -->
+        <div class="card-body">
+          <!-- Format Badge -->
+          <div class="mb-2">
+            <span class="badge" 
+                  [class]="getFormatBadgeClass(deck.format)">
+              {{ deck.format | titlecase }}
+            </span>
+            <span class="badge ms-2" 
+                  [class]="deck.isValid ? 'bg-success' : 'bg-warning'">
+              <i [class]="deck.isValid ? 'bi bi-check-circle me-1' : 'bi bi-exclamation-triangle me-1'"></i>
+              {{ deck.isValid ? 'Valid' : 'Invalid' }}
+            </span>
+          </div>
+
+          <!-- Description -->
+          <p class="card-text text-muted" *ngIf="deck.description">
+            {{ deck.description }}
+          </p>
+          <p class="card-text text-muted fst-italic" *ngIf="!deck.description">
+            No description provided
+          </p>
+
+          <!-- Deck Statistics -->
+          <div class="row text-center mb-3">
+            <div class="col-3">
+              <div class="statistic">
+                <h5 class="mb-0" [class.text-danger]="deck.totalCards !== 60">
+                  {{ deck.totalCards || 0 }}
+                </h5>
+                <small class="text-muted">Total</small>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="statistic">
+                <h5 class="mb-0 text-danger">{{ getDeckStats(deck).pokemon }}</h5>
+                <small class="text-muted">Pokémon</small>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="statistic">
+                <h5 class="mb-0 text-info">{{ getDeckStats(deck).trainers }}</h5>
+                <small class="text-muted">Trainers</small>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="statistic">
+                <h5 class="mb-0 text-warning">{{ getDeckStats(deck).energy }}</h5>
+                <small class="text-muted">Energy</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sample Cards Preview -->
+          <div class="sample-cards mb-3" *ngIf="deck.cards && deck.cards.length > 0">
+            <div class="d-flex justify-content-start">
+              <img *ngFor="let deckCard of deck.cards.slice(0, 4); trackBy: trackByCardId" 
+                   [src]="deckCard.card.images.small" 
+                   [alt]="deckCard.card.name"
+                   [title]="deckCard.card.name + ' x' + deckCard.quantity"
+                   class="sample-card me-1"
+                   style="width: 40px; height: 56px; object-fit: cover; border-radius: 4px;">
+              <div *ngIf="deck.cards.length > 4" 
+                   class="sample-card-more d-flex align-items-center justify-content-center bg-light text-muted border rounded me-1"
+                   style="width: 40px; height: 56px; font-size: 12px;">
+                +{{ deck.cards.length - 4 }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="card-footer bg-transparent">
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+              <i class="bi bi-calendar me-1"></i>
+              {{ getFormattedDate(deck.updatedAt) }}
+            </small>
+            <button class="btn btn-pokemon btn-sm" 
+                    (click)="editDeck(deck)">
+              <i class="bi bi-arrow-right me-1"></i>Open
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Decks -->
+  <div *ngIf="!loading && decks.length === 0" class="card card-pokemon">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-collection display-1 text-muted"></i>
+      <h3 class="mt-4">No decks found</h3>
+      <p class="text-muted mb-4">
+        You haven't created any decks yet. Start building your first deck to get started!
+      </p>
+      <button class="btn btn-pokemon btn-lg" (click)="createNewDeck()">
+        <i class="bi bi-plus-circle me-2"></i>Create Your First Deck
+      </button>
+    </div>
+  </div>
+</div>

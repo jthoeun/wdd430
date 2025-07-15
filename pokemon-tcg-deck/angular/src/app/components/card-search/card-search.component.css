@@ -1,0 +1,31 @@
+.card-hover {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+.card-hover:hover .btn {
+  opacity: 1 !important;
+}
+
+.card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-pokemon {
+  background: var(--pokemon-blue);
+  border-color: var(--pokemon-blue);
+  color: white;
+}
+
+.btn-pokemon:hover {
+  background: #2980b9;
+  border-color: #2980b9;
+  color: white;
+}
