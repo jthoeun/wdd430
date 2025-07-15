@@ -1,1 +1,182 @@
-<p>card-search works!</p>
+
+<div class="card card-pokemon">
+  <div class="card-header">
+    <h5 class="card-title mb-0">
+      <i class="bi bi-search me-2"></i>Card Search
+    </h5>
+  </div>
+  
+  <div class="card-body">
+    <!-- Search Filters -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <label for="search-input" class="form-label">Search by Name:</label>
+        <input 
+          id="search-input"
+          type="text" 
+          class="form-control"
+          [(ngModel)]="searchQuery" 
+          (input)="onSearchInput()"
+          placeholder="Enter card name...">
+      </div>
+
+      <div class="col-md-3">
+        <label for="set-select" class="form-label">Filter by Set:</label>
+        <select 
+          id="set-select"
+          class="form-select"
+          [(ngModel)]="selectedSet" 
+          (change)="onSetChange()">
+          <option value="">All Sets</option>
+          <option *ngFor="let set of sets" [value]="set.id">
+            {{ set.name }} ({{ set.series }})
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label for="type-select" class="form-label">Filter by Type:</label>
+        <select 
+          id="type-select"
+          class="form-select"
+          [(ngModel)]="selectedType" 
+          (change)="onTypeChange()">
+          <option value="">All Types</option>
+          <option *ngFor="let type of supertypes" [value]="type">
+            {{ type }}
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label d-block">Format:</label>
+        <div class="form-check">
+          <input 
+            class="form-check-input" 
+            type="checkbox" 
+            id="standardOnly"
+            [(ngModel)]="standardOnly" 
+            (change)="onFormatChange()">
+          <label class="form-check-label" for="standardOnly">
+            Standard Only
+          </label>
+        </div>
+      </div>
+
+      <div class="col-md-1">
+        <label class="form-label d-block">&nbsp;</label>
+        <button 
+          type="button" 
+          class="btn btn-outline-secondary w-100" 
+          (click)="clearFilters()">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="alert alert-danger" role="alert">
+      {{ error }}
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading cards...</span>
+      </div>
+      <p class="mt-2">Loading cards...</p>
+    </div>
+
+    <!-- Cards Grid -->
+    <div *ngIf="!loading && cards.length > 0" class="row g-3">
+      <div class="col-lg-2 col-md-3 col-sm-4 col-6" *ngFor="let card of cards">
+        <div class="card h-100 card-hover" 
+             (click)="onCardSelect(card)"
+             [class.border-danger]="!isCardLegal(card)"
+             [class.opacity-50]="!isCardLegal(card)">
+          
+          <img [src]="card.images.small" 
+               [alt]="card.name" 
+               class="card-img-top"
+               loading="lazy"
+               style="height: 200px; object-fit: cover;">
+          
+          <div class="card-body p-2">
+            <h6 class="card-title small mb-1" [title]="card.name">
+              {{ card.name }}
+            </h6>
+            <p class="card-text small text-muted mb-1">
+              {{ card.set.name }}
+            </p>
+            
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="badge" 
+                    [class]="'bg-' + getSuperTypeBadgeColor(card.supertype)">
+                {{ card.supertype }}
+              </span>
+              <small class="text-muted">{{ card.rarity }}</small>
+            </div>
+            
+            <div class="mt-1" *ngIf="card.hp">
+              <small class="text-muted">HP: {{ card.hp }}</small>
+              <span *ngIf="card.types" class="ms-2">
+                <small>{{ card.types.join(', ') }}</small>
+              </span>
+            </div>
+
+            <!-- Legality Indicator -->
+            <div class="mt-1">
+              <span *ngIf="card.legalities.standard === 'legal'" 
+                    class="badge bg-success small">
+                ✓ Standard
+              </span>
+              <span *ngIf="card.legalities.standard !== 'legal'" 
+                    class="badge bg-warning small">
+                ✗ Not Standard
+              </span>
+            </div>
+          </div>
+
+          <!-- Add Button Overlay -->
+          <div class="position-absolute top-0 end-0 p-2">
+            <button class="btn btn-pokemon btn-sm rounded-circle" 
+                    style="width: 30px; height: 30px; opacity: 0.8;">
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div *ngIf="!loading && cards.length === 0" class="text-center py-5">
+      <p class="text-muted">
+        No {{ standardOnly ? 'Standard-legal ' : '' }}cards found. 
+        Try adjusting your search criteria.
+      </p>
+    </div>
+
+    <!-- Pagination -->
+    <nav *ngIf="totalPages > 1" aria-label="Card search pagination" class="mt-4">
+      <ul class="pagination justify-content-center">
+        <li class="page-item" [class.disabled]="currentPage <= 1">
+          <button class="page-link" (click)="loadPage(currentPage - 1)" [disabled]="currentPage <= 1">
+            Previous
+          </button>
+        </li>
+        
+        <li class="page-item active">
+          <span class="page-link">
+            Page {{ currentPage }} of {{ totalPages }}
+          </span>
+        </li>
+        
+        <li class="page-item" [class.disabled]="currentPage >= totalPages">
+          <button class="page-link" (click)="loadPage(currentPage + 1)" [disabled]="currentPage >= totalPages">
+            Next
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>

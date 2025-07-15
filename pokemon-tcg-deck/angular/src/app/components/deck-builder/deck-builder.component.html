@@ -1,1 +1,329 @@
-<p>deck-builder works!</p>
+<!-- src/app/components/deck-builder/deck-builder.component.html -->
+<div class="container-fluid">
+  <!-- Header Section -->
+  <div class="card card-pokemon mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">
+          <i class="bi bi-stack me-2"></i>Deck Builder
+        </h2>
+        <div class="btn-group" role="group">
+          <button type="button" 
+                  class="btn btn-success" 
+                  (click)="createNewDeck()">
+            <i class="bi bi-plus-circle me-1"></i>New Deck
+          </button>
+          <button type="button" 
+                  class="btn btn-pokemon" 
+                  (click)="saveDeck()" 
+                  [disabled]="!currentDeck">
+            <i class="bi bi-save me-1"></i>Save Deck
+          </button>
+          <button type="button" 
+                  class="btn btn-outline-primary" 
+                  (click)="showCardSearch = !showCardSearch">
+            <i class="bi bi-search me-1"></i>
+            {{ showCardSearch ? 'Hide' : 'Show' }} Card Search
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="row" *ngIf="currentDeck">
+    <!-- Deck Info Panel -->
+    <div class="col-lg-4 col-md-5">
+      <div class="card card-pokemon mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-info-circle me-2"></i>Deck Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Deck Details Form -->
+          <div class="mb-3">
+            <label for="deck-name" class="form-label">Deck Name:</label>
+            <input type="text" 
+                   id="deck-name"
+                   class="form-control"
+                   [(ngModel)]="currentDeck.name" 
+                   placeholder="Enter deck name">
+          </div>
+
+          <div class="mb-3">
+            <label for="deck-description" class="form-label">Description:</label>
+            <textarea id="deck-description"
+                      class="form-control"
+                      rows="3"
+                      [(ngModel)]="currentDeck.description" 
+                      placeholder="Describe your deck strategy..."></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="deck-format" class="form-label">Format:</label>
+            <select id="deck-format"
+                    class="form-select"
+                    [(ngModel)]="currentDeck.format">
+              <option value="standard">Standard</option>
+              <option value="expanded">Expanded</option>
+              <option value="unlimited">Unlimited</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deck Statistics -->
+      <div class="card card-pokemon mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-bar-chart me-2"></i>Deck Statistics
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center mb-3">
+            <div class="col-6">
+              <div class="border-end">
+                <h3 class="mb-0" [class.text-danger]="getTotalCards() !== 60">
+                  {{ getTotalCards() }}
+                </h3>
+                <small class="text-muted">Total Cards</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <h3 class="mb-0 text-success">60</h3>
+              <small class="text-muted">Required</small>
+            </div>
+          </div>
+
+          <div class="row text-center">
+            <div class="col-4">
+              <div class="border-end">
+                <h5 class="mb-0 text-danger">{{ getPokemonCardCount() }}</h5>
+                <small class="text-muted">Pokémon</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="border-end">
+                <h5 class="mb-0 text-info">{{ getTrainerCardCount() }}</h5>
+                <small class="text-muted">Trainers</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <h5 class="mb-0 text-warning">{{ getEnergyCardCount() }}</h5>
+              <small class="text-muted">Energy</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deck Validation -->
+      <div class="card" [class]="deckValidation.valid ? 'border-success' : 'border-warning'">
+        <div class="card-header" [class]="deckValidation.valid ? 'bg-success text-white' : 'bg-warning'">
+          <h6 class="card-title mb-0">
+            <i [class]="deckValidation.valid ? 'bi bi-check-circle me-2' : 'bi bi-exclamation-triangle me-2'"></i>
+            {{ deckValidation.valid ? 'Deck is Valid!' : 'Validation Errors' }}
+          </h6>
+        </div>
+        <div class="card-body" *ngIf="!deckValidation.valid">
+          <ul class="list-unstyled mb-0">
+            <li *ngFor="let error of deckValidation.errors" class="text-danger">
+              <i class="bi bi-x-circle me-1"></i>{{ error }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deck Content -->
+    <div class="col-lg-8 col-md-7">
+      <!-- Pokémon Cards -->
+      <div class="card card-pokemon mb-4" *ngIf="getPokemonCards().length > 0">
+        <div class="card-header bg-danger text-white">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-lightning me-2"></i>
+            Pokémon Cards ({{ getPokemonCardCount() }})
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-6" *ngFor="let deckCard of getPokemonCards()">
+              <div class="card border">
+                <div class="card-body p-2">
+                  <div class="row align-items-center">
+                    <div class="col-3">
+                      <img [src]="deckCard.card.images.small" 
+                           [alt]="deckCard.card.name" 
+                           class="img-fluid rounded"
+                           style="max-height: 60px;">
+                    </div>
+                    <div class="col-6">
+                      <h6 class="mb-1 small">{{ deckCard.card.name }}</h6>
+                      <p class="mb-0 small text-muted">{{ deckCard.card.set.name }}</p>
+                      <span *ngIf="deckCard.card.hp" class="badge bg-success small">
+                        HP: {{ deckCard.card.hp }}
+                      </span>
+                    </div>
+                    <div class="col-3 text-end">
+                      <div class="btn-group-vertical btn-group-sm">
+                        <button class="btn btn-outline-success btn-sm" 
+                                (click)="addCard(deckCard)">
+                          <i class="bi bi-plus"></i>
+                        </button>
+                        <span class="badge bg-primary my-1">{{ deckCard.quantity }}</span>
+                        <button class="btn btn-outline-warning btn-sm" 
+                                (click)="removeCard(deckCard)">
+                          <i class="bi bi-dash"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" 
+                                (click)="removeAllCopies(deckCard)"
+                                title="Remove all copies">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trainer Cards -->
+      <div class="card card-pokemon mb-4" *ngIf="getTrainerCards().length > 0">
+        <div class="card-header bg-info text-white">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-person me-2"></i>
+            Trainer Cards ({{ getTrainerCardCount() }})
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-6" *ngFor="let deckCard of getTrainerCards()">
+              <div class="card border">
+                <div class="card-body p-2">
+                  <div class="row align-items-center">
+                    <div class="col-3">
+                      <img [src]="deckCard.card.images.small" 
+                           [alt]="deckCard.card.name" 
+                           class="img-fluid rounded"
+                           style="max-height: 60px;">
+                    </div>
+                    <div class="col-6">
+                      <h6 class="mb-1 small">{{ deckCard.card.name }}</h6>
+                      <p class="mb-0 small text-muted">{{ deckCard.card.set.name }}</p>
+                      <span *ngIf="deckCard.card.subtypes" class="badge bg-info small">
+                        {{ deckCard.card.subtypes.join(', ') }}
+                      </span>
+                    </div>
+                    <div class="col-3 text-end">
+                      <div class="btn-group-vertical btn-group-sm">
+                        <button class="btn btn-outline-success btn-sm" 
+                                (click)="addCard(deckCard)">
+                          <i class="bi bi-plus"></i>
+                        </button>
+                        <span class="badge bg-primary my-1">{{ deckCard.quantity }}</span>
+                        <button class="btn btn-outline-warning btn-sm" 
+                                (click)="removeCard(deckCard)">
+                          <i class="bi bi-dash"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" 
+                                (click)="removeAllCopies(deckCard)"
+                                title="Remove all copies">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Energy Cards -->
+      <div class="card card-pokemon mb-4" *ngIf="getEnergyCards().length > 0">
+        <div class="card-header bg-warning">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-lightning-charge me-2"></i>
+            Energy Cards ({{ getEnergyCardCount() }})
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-6" *ngFor="let deckCard of getEnergyCards()">
+              <div class="card border">
+                <div class="card-body p-2">
+                  <div class="row align-items-center">
+                    <div class="col-3">
+                      <img [src]="deckCard.card.images.small" 
+                           [alt]="deckCard.card.name" 
+                           class="img-fluid rounded"
+                           style="max-height: 60px;">
+                    </div>
+                    <div class="col-6">
+                      <h6 class="mb-1 small">{{ deckCard.card.name }}</h6>
+                      <p class="mb-0 small text-muted">{{ deckCard.card.set.name }}</p>
+                      <span *ngIf="deckCard.card.subtypes" class="badge bg-warning small">
+                        {{ deckCard.card.subtypes.join(', ') }}
+                      </span>
+                    </div>
+                    <div class="col-3 text-end">
+                      <div class="btn-group-vertical btn-group-sm">
+                        <button class="btn btn-outline-success btn-sm" 
+                                (click)="addCard(deckCard)">
+                          <i class="bi bi-plus"></i>
+                        </button>
+                        <span class="badge bg-primary my-1">{{ deckCard.quantity }}</span>
+                        <button class="btn btn-outline-warning btn-sm" 
+                                (click)="removeCard(deckCard)">
+                          <i class="bi bi-dash"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" 
+                                (click)="removeAllCopies(deckCard)"
+                                title="Remove all copies">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Deck Message -->
+      <div *ngIf="currentDeck.cards.length === 0" class="card card-pokemon">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-stack display-1 text-muted"></i>
+          <h4 class="mt-3">Your deck is empty</h4>
+          <p class="text-muted">Use the card search to add cards to your deck!</p>
+          <button class="btn btn-pokemon" (click)="showCardSearch = true">
+            <i class="bi bi-search me-1"></i>Search for Cards
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Deck Selected -->
+  <div *ngIf="!currentDeck" class="card card-pokemon">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-plus-circle display-1 text-muted"></i>
+      <h3 class="mt-3">No deck selected</h3>
+      <p class="text-muted">Create a new deck to get started!</p>
+      <button class="btn btn-pokemon btn-lg" (click)="createNewDeck()">
+        <i class="bi bi-plus-circle me-2"></i>Create New Deck
+      </button>
+    </div>
+  </div>
+
+  <!-- Card Search Panel -->
+  <div class="mt-4" *ngIf="showCardSearch">
+    <app-card-search (cardSelected)="onCardSelected($event)"></app-card-search>
+  </div>
+</div>
