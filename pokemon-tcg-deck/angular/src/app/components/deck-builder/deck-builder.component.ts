@@ -1,4 +1,3 @@
-// src/app/components/deck-builder/deck-builder.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -153,7 +152,7 @@ export class DeckBuilderComponent implements OnInit, OnDestroy {
       this.deckValidation = this.deckService.isDeckValid(this.currentDeck);
     }
   }
-  // Helper methods for template calculations
+
 getPokemonCardCount(): number {
   return this.getPokemonCards().reduce((sum, dc) => sum + dc.quantity, 0);
 }

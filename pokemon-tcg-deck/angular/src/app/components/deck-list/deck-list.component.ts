@@ -1,4 +1,3 @@
-// src/app/components/deck-list/deck-list.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
