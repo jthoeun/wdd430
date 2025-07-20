@@ -2,11 +2,86 @@ const express = require('express');
 const router = express.Router();
 const Deck = require('../models/Deck');
 
+// Helper function to clean card data
+function cleanCardData(cards) {
+  if (!cards || !Array.isArray(cards)) {
+    return cards;
+  }
+  
+  cards.forEach(deckCard => {
+    if (deckCard.card) {
+      // Handle weaknesses
+      if (deckCard.card.weaknesses) {
+        if (typeof deckCard.card.weaknesses === 'string') {
+          try {
+            deckCard.card.weaknesses = JSON.parse(deckCard.card.weaknesses);
+          } catch (e) {
+            console.warn('Failed to parse weaknesses, setting to empty array');
+            deckCard.card.weaknesses = [];
+          }
+        }
+        // Ensure it's an array
+        if (!Array.isArray(deckCard.card.weaknesses)) {
+          deckCard.card.weaknesses = [];
+        }
+      }
+      
+      // Handle resistances
+      if (deckCard.card.resistances) {
+        if (typeof deckCard.card.resistances === 'string') {
+          try {
+            deckCard.card.resistances = JSON.parse(deckCard.card.resistances);
+          } catch (e) {
+            console.warn('Failed to parse resistances, setting to empty array');
+            deckCard.card.resistances = [];
+          }
+        }
+        // Ensure it's an array
+        if (!Array.isArray(deckCard.card.resistances)) {
+          deckCard.card.resistances = [];
+        }
+      }
+      
+      // Handle other array fields that might be strings
+      const arrayFields = ['subtypes', 'types', 'evolvesTo', 'rules', 'retreatCost', 'nationalPokedexNumbers'];
+      arrayFields.forEach(field => {
+        if (deckCard.card[field] && typeof deckCard.card[field] === 'string') {
+          try {
+            deckCard.card[field] = JSON.parse(deckCard.card[field]);
+          } catch (e) {
+            console.warn(`Failed to parse ${field}, setting to empty array`);
+            deckCard.card[field] = [];
+          }
+        }
+        if (deckCard.card[field] && !Array.isArray(deckCard.card[field])) {
+          deckCard.card[field] = [];
+        }
+      });
+      
+      // Handle attacks array
+      if (deckCard.card.attacks && typeof deckCard.card.attacks === 'string') {
+        try {
+          deckCard.card.attacks = JSON.parse(deckCard.card.attacks);
+        } catch (e) {
+          console.warn('Failed to parse attacks, setting to empty array');
+          deckCard.card.attacks = [];
+        }
+      }
+      if (deckCard.card.attacks && !Array.isArray(deckCard.card.attacks)) {
+        deckCard.card.attacks = [];
+      }
+    }
+  });
+  
+  return cards;
+}
+
 // GET all decks
 router.get('/', async (req, res) => {
   try {
+    // FIXED: Include 'cards' field so frontend can calculate Pokemon/Trainer/Energy breakdown
     const decks = await Deck.find()
-      .select('name description format totalCards isValid createdAt updatedAt')
+      .select('name description format totalCards isValid cards createdAt updatedAt')
       .sort({ updatedAt: -1 });
     
     console.log(`📋 Retrieved ${decks.length} decks`);
@@ -47,11 +122,14 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Valid format is required' });
     }
 
+    // Clean card data before creating deck
+    const cleanedCards = cleanCardData(cards || []);
+
     const deck = new Deck({
       name: name.trim(),
       description: description || '',
       format,
-      cards: cards || []
+      cards: cleanedCards
     });
 
     const savedDeck = await deck.save();
@@ -59,8 +137,21 @@ router.post('/', async (req, res) => {
     res.status(201).json(savedDeck);
   } catch (error) {
     console.error('❌ Error creating deck:', error);
+    console.error('Full error details:', JSON.stringify(error, null, 2));
+    
     if (error.name === 'ValidationError') {
-      res.status(400).json({ error: error.message });
+      // Provide more detailed validation error information
+      const validationErrors = Object.keys(error.errors).map(key => ({
+        field: key,
+        message: error.errors[key].message,
+        value: error.errors[key].value
+      }));
+      
+      res.status(400).json({ 
+        error: 'Deck validation failed', 
+        details: error.message,
+        validationErrors 
+      });
     } else {
       res.status(500).json({ error: error.message });
     }
@@ -81,15 +172,32 @@ router.put('/:id', async (req, res) => {
     if (name !== undefined) deck.name = name.trim();
     if (description !== undefined) deck.description = description;
     if (format !== undefined) deck.format = format;
-    if (cards !== undefined) deck.cards = cards;
+    if (cards !== undefined) {
+      // Clean card data before updating
+      const cleanedCards = cleanCardData(cards);
+      deck.cards = cleanedCards;
+    }
 
     const savedDeck = await deck.save();
     console.log(`✅ Updated deck: ${savedDeck.name} (${savedDeck.totalCards} cards)`);
     res.json(savedDeck);
   } catch (error) {
     console.error('❌ Error updating deck:', error);
+    console.error('Full error details:', JSON.stringify(error, null, 2));
+    
     if (error.name === 'ValidationError') {
-      res.status(400).json({ error: error.message });
+      // Provide more detailed validation error information
+      const validationErrors = Object.keys(error.errors).map(key => ({
+        field: key,
+        message: error.errors[key].message,
+        value: error.errors[key].value
+      }));
+      
+      res.status(400).json({ 
+        error: 'Deck validation failed', 
+        details: error.message,
+        validationErrors 
+      });
     } else {
       res.status(500).json({ error: error.message });
     }

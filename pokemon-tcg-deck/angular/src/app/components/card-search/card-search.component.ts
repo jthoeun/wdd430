@@ -24,7 +24,6 @@ export class CardSearchComponent implements OnInit {
   searchQuery = '';
   selectedSet = '';
   selectedType = '';
-  standardOnly = true; // Default to Standard format only
   currentPage = 1;
   totalPages = 1;
   
@@ -36,15 +35,15 @@ export class CardSearchComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadSets();
-    this.loadInitialCards(); // Load initial Standard cards
+    this.loadInitialCards();
     
-    // Setup debounced search
+    
     this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       switchMap(query => {
         this.loading = true;
-        return this.tcgService.searchCardsByName(query, 1, this.standardOnly);
+        return this.tcgService.searchCardsByName(query, 1, false); 
       })
     ).subscribe({
       next: (response) => {
@@ -65,26 +64,10 @@ export class CardSearchComponent implements OnInit {
     this.searchSubject.next(this.searchQuery);
   }
 
-  onFormatChange(): void {
-    // Reload current search/filter with new format setting
-    if (this.searchQuery) {
-      this.onSearchInput();
-    } else if (this.selectedSet) {
-      this.onSetChange();
-    } else if (this.selectedType) {
-      this.onTypeChange();
-    } else {
-      this.loadInitialCards();
-    }
-    
-    // Reload sets based on format
-    this.loadSets();
-  }
-
   onSetChange(): void {
     if (this.selectedSet) {
       this.loading = true;
-      this.tcgService.searchCardsBySet(this.selectedSet, 1, this.standardOnly).subscribe({
+      this.tcgService.searchCardsBySet(this.selectedSet, 1, false).subscribe({ // No standard filter
         next: (response) => {
           this.cards = response.data;
           this.currentPage = response.page;
@@ -102,7 +85,7 @@ export class CardSearchComponent implements OnInit {
   onTypeChange(): void {
     if (this.selectedType) {
       this.loading = true;
-      this.tcgService.searchCardsByType(this.selectedType, 1, this.standardOnly).subscribe({
+      this.tcgService.searchCardsByType(this.selectedType, 1, false).subscribe({ // No standard filter
         next: (response) => {
           this.cards = response.data;
           this.currentPage = response.page;
@@ -124,15 +107,13 @@ export class CardSearchComponent implements OnInit {
     let searchObservable;
     
     if (this.searchQuery) {
-      searchObservable = this.tcgService.searchCardsByName(this.searchQuery, page, this.standardOnly);
+      searchObservable = this.tcgService.searchCardsByName(this.searchQuery, page, false);
     } else if (this.selectedSet) {
-      searchObservable = this.tcgService.searchCardsBySet(this.selectedSet, page, this.standardOnly);
+      searchObservable = this.tcgService.searchCardsBySet(this.selectedSet, page, false);
     } else if (this.selectedType) {
-      searchObservable = this.tcgService.searchCardsByType(this.selectedType, page, this.standardOnly);
+      searchObservable = this.tcgService.searchCardsByType(this.selectedType, page, false);
     } else {
-      const query = this.standardOnly ? 'legalities.standard:legal' : '';
       searchObservable = this.tcgService.searchCards({ 
-        q: query, 
         page, 
         pageSize: 20,
         orderBy: 'name'
@@ -152,14 +133,9 @@ export class CardSearchComponent implements OnInit {
     });
   }
 
-onCardSelect(card: Card): void {
-  // Check for "Standartd Only" checkbox
-  if (this.standardOnly && card.legalities.standard?.toLowerCase() !== 'legal') {
-    this.error = `${card.name} is not legal in Standard format`;
-    return;
+  onCardSelect(card: Card): void {
+    this.cardSelected.emit(card);
   }
-  this.cardSelected.emit(card);
-}
 
   clearFilters(): void {
     this.searchQuery = '';
@@ -169,11 +145,7 @@ onCardSelect(card: Card): void {
   }
 
   private loadSets(): void {
-    const setsObservable = this.standardOnly ? 
-      this.tcgService.getStandardSets() : 
-      this.tcgService.getAllSets();
-      
-    setsObservable.subscribe({
+    this.tcgService.getAllSets().subscribe({
       next: (response) => {
         this.sets = response.data.sort((a, b) => 
           new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
@@ -187,10 +159,8 @@ onCardSelect(card: Card): void {
 
   private loadInitialCards(): void {
     this.loading = true;
-    const query = this.standardOnly ? 'legalities.standard:legal' : '';
     
     this.tcgService.searchCards({ 
-      q: query,
       page: 1, 
       pageSize: 20, 
       orderBy: 'name' 
@@ -208,19 +178,12 @@ onCardSelect(card: Card): void {
     });
   }
 
-isCardLegal(card: Card): boolean {
-  if (this.standardOnly) {
-    return card.legalities.standard?.toLowerCase() === 'legal';
-  }
-  return true;
-}
-
   getSuperTypeBadgeColor(supertype: string): string {
-  switch (supertype) {
-    case 'Pokémon': return 'danger';
-    case 'Trainer': return 'info';
-    case 'Energy': return 'warning';
-    default: return 'secondary';
+    switch (supertype) {
+      case 'Pokémon': return 'danger';
+      case 'Trainer': return 'info';
+      case 'Energy': return 'warning';
+      default: return 'secondary';
+    }
   }
-}
 }

@@ -13,7 +13,7 @@ export class DeckService {
 
   constructor(private http: HttpClient) {}
 
-  
+  // API Methods
   getAllDecks(): Observable<Deck[]> {
     return this.http.get<Deck[]>(this.apiUrl);
   }
@@ -43,7 +43,7 @@ export class DeckService {
     return this.currentDeckSubject.value;
   }
 
-  
+  // Deck Manipulation Methods
   addCardToDeck(deck: Deck, card: Card, quantity: number = 1): Deck {
     const existingCard = deck.cards.find(dc => dc.card.id === card.id);
     
@@ -72,27 +72,18 @@ export class DeckService {
     return { ...deck };
   }
 
+  // Utility Methods
   getTotalCards(deck: Deck): number {
+    if (!deck.cards) return 0;
     return deck.cards.reduce((total, deckCard) => total + deckCard.quantity, 0);
   }
 
   getCardsByType(deck: Deck, supertype: string): DeckCard[] {
+    if (!deck.cards) return [];
     return deck.cards.filter(dc => dc.card.supertype === supertype);
   }
 
-  private getMaxAllowed(card: Card): number {
-    // ACE SPEC and Radiant cards are limited to 1
-    if (card.subtypes && (card.subtypes.includes('ACE SPEC') || card.subtypes.includes('Radiant'))) {
-      return 1;
-    }
-    // Basic energy cards can have unlimited copies
-    if (card.supertype === 'Energy' && card.subtypes && card.subtypes.includes('Basic')) {
-      return 99; // Effectively unlimited
-    }
-    // All other cards limited to 4 copies
-    return 4;
-  }
-
+  // Validation Methods
   isDeckValid(deck: Deck): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
     const totalCards = this.getTotalCards(deck);
@@ -130,5 +121,18 @@ export class DeckService {
       valid: errors.length === 0,
       errors
     };
+  }
+
+  private getMaxAllowed(card: Card): number {
+    // ACE SPEC and Radiant cards are limited to 1
+    if (card.subtypes && (card.subtypes.includes('ACE SPEC') || card.subtypes.includes('Radiant'))) {
+      return 1;
+    }
+    // Basic energy cards can have unlimited copies
+    if (card.supertype === 'Energy' && card.subtypes && card.subtypes.includes('Basic')) {
+      return 99;
+    }
+    // All other cards limited to 4 copies
+    return 4;
   }
 }
