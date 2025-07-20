@@ -67,7 +67,6 @@ export class PokemonTcgService {
 
   searchCardsByName(name: string, page: number = 1, standardOnly: boolean = true): Observable<ApiResponse<Card>> {
     const baseQuery = `name:"*${name}*"`;
-    // FIXED: Use capital "Legal" for API
     const query = standardOnly ? `${baseQuery} legalities.standard:Legal` : baseQuery;
     
     return this.searchCards({
@@ -80,7 +79,7 @@ export class PokemonTcgService {
 
   searchCardsBySet(setId: string, page: number = 1, standardOnly: boolean = true): Observable<ApiResponse<Card>> {
     const baseQuery = `set.id:${setId}`;
-    // FIXED: Use capital "Legal" for API
+    
     const query = standardOnly ? `${baseQuery} legalities.standard:Legal` : baseQuery;
     
     return this.searchCards({
@@ -93,7 +92,6 @@ export class PokemonTcgService {
 
   searchCardsByType(supertype: string, page: number = 1, standardOnly: boolean = true): Observable<ApiResponse<Card>> {
     const baseQuery = `supertype:${supertype}`;
-    // FIXED: Use capital "Legal" for API
     const query = standardOnly ? `${baseQuery} legalities.standard:Legal` : baseQuery;
     
     return this.searchCards({
@@ -106,13 +104,12 @@ export class PokemonTcgService {
 
   // Get only Standard-legal sets
   getStandardSets(): Observable<ApiResponse<CardSet>> {
-    // FIXED: Use capital "Legal" for API
     return this.http.get<ApiResponse<CardSet>>(`${this.baseUrl}/sets?q=legalities.standard:Legal`, {
       headers: this.getHeaders()
     });
   }
 
-  // Get all sets (for format selection)
+  // Get all sets
   getAllSets(): Observable<ApiResponse<CardSet>> {
     return this.getSets();
   }

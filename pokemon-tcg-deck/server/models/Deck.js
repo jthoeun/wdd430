@@ -23,13 +23,27 @@ const deckCardSchema = new mongoose.Schema({
       damage: String,
       text: String
     }],
+    // FIXED: Proper schema definition for weaknesses
     weaknesses: [{
-      type: String,
-      value: String
+      type: {
+        type: String,
+        required: false
+      },
+      value: {
+        type: String,
+        required: false
+      }
     }],
+    // FIXED: Proper schema definition for resistances
     resistances: [{
-      type: String,
-      value: String
+      type: {
+        type: String,
+        required: false
+      },
+      value: {
+        type: String,
+        required: false
+      }
     }],
     retreatCost: [String],
     convertedRetreatCost: Number,
@@ -117,7 +131,7 @@ const deckSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Pre-save middleware to calculate deck statistics
+
 deckSchema.pre('save', function(next) {
   this.totalCards = this.cards.reduce((total, deckCard) => total + deckCard.quantity, 0);
   
@@ -129,7 +143,7 @@ deckSchema.pre('save', function(next) {
   next();
 });
 
-// Instance method to validate deck
+
 deckSchema.methods.validateDeck = function() {
   const errors = [];
   

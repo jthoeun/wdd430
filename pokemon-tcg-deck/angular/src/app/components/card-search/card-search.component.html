@@ -1,4 +1,3 @@
-
 <div class="card card-pokemon">
   <div class="card-header">
     <h5 class="card-title mb-0">
@@ -20,7 +19,7 @@
           placeholder="Enter card name...">
       </div>
 
-      <div class="col-md-3">
+      <div class="col-md-4">
         <label for="set-select" class="form-label">Filter by Set:</label>
         <select 
           id="set-select"
@@ -34,7 +33,7 @@
         </select>
       </div>
 
-      <div class="col-md-2">
+      <div class="col-md-3">
         <label for="type-select" class="form-label">Filter by Type:</label>
         <select 
           id="type-select"
@@ -48,63 +47,43 @@
         </select>
       </div>
 
-      <div class="col-md-2">
-        <label class="form-label d-block">Format:</label>
-        <div class="form-check">
-          <input 
-            class="form-check-input" 
-            type="checkbox" 
-            id="standardOnly"
-            [(ngModel)]="standardOnly" 
-            (change)="onFormatChange()">
-          <label class="form-check-label" for="standardOnly">
-            Standard Only
-          </label>
-        </div>
-      </div>
-
       <div class="col-md-1">
         <label class="form-label d-block">&nbsp;</label>
-        <button 
-          type="button" 
-          class="btn btn-outline-secondary w-100" 
-          (click)="clearFilters()">
-          Clear
+        <button class="btn btn-outline-secondary" (click)="clearFilters()">
+          <i class="bi bi-x-circle"></i> Clear
         </button>
       </div>
     </div>
 
-    <!-- Error Message -->
-    <div *ngIf="error" class="alert alert-danger" role="alert">
-      {{ error }}
-    </div>
-
-    <!-- Loading Spinner -->
+    <!-- Loading Indicator -->
     <div *ngIf="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading cards...</span>
+        <span class="visually-hidden">Loading...</span>
       </div>
-      <p class="mt-2">Loading cards...</p>
+      <p class="mt-2 text-muted">Searching cards...</p>
     </div>
 
-    <!-- Cards Grid -->
+    <!-- Error Message -->
+    <div *ngIf="error" class="alert alert-warning" role="alert">
+      <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+    </div>
+
+    <!-- Card Results Grid -->
     <div *ngIf="!loading && cards.length > 0" class="row g-3">
-      <div class="col-lg-2 col-md-3 col-sm-4 col-6" *ngFor="let card of cards">
-        <div class="card h-100 card-hover" 
-             (click)="onCardSelect(card)"
-             [class.border-danger]="!isCardLegal(card)"
-             [class.opacity-50]="!isCardLegal(card)">
-          
+      <div *ngFor="let card of cards" class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+        <div class="card h-100 card-hover position-relative" 
+             (click)="onCardSelect(card)" 
+             style="cursor: pointer;">
           <img [src]="card.images.small" 
                [alt]="card.name" 
                class="card-img-top"
-               loading="lazy"
-               style="height: 200px; object-fit: cover;">
+               style="height: 200px; object-fit: contain;">
           
           <div class="card-body p-2">
             <h6 class="card-title small mb-1" [title]="card.name">
               {{ card.name }}
             </h6>
+            
             <p class="card-text small text-muted mb-1">
               {{ card.set.name }}
             </p>
@@ -123,18 +102,6 @@
                 <small>{{ card.types.join(', ') }}</small>
               </span>
             </div>
-
-            <!-- Legality Indicator -->
-            <div class="mt-1">
-              <span *ngIf="card.legalities.standard === 'legal'" 
-                    class="badge bg-success small">
-                ✓ Standard
-              </span>
-              <span *ngIf="card.legalities.standard !== 'legal'" 
-                    class="badge bg-warning small">
-                ✗ Not Standard
-              </span>
-            </div>
           </div>
 
           <!-- Add Button Overlay -->
@@ -151,8 +118,7 @@
     <!-- No Results -->
     <div *ngIf="!loading && cards.length === 0" class="text-center py-5">
       <p class="text-muted">
-        No {{ standardOnly ? 'Standard-legal ' : '' }}cards found. 
-        Try adjusting your search criteria.
+        No cards found. Try adjusting your search criteria.
       </p>
     </div>
 
