@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { DeckService } from '../../services/deck.service';
 import { Deck } from '../../models/tcg-models';
 
@@ -27,15 +27,18 @@ export class DeckListComponent implements OnInit {
 
   loadDecks(): void {
     this.loading = true;
+    this.error = '';
+    
     this.deckService.getAllDecks().subscribe({
       next: (decks) => {
         this.decks = decks;
         this.loading = false;
+        console.log('✅ Loaded decks from backend:', decks.length);
       },
       error: (err) => {
-        this.error = 'Failed to load decks';
+        this.error = 'Failed to load decks from backend. Make sure the backend server is running on port 3000.';
         this.loading = false;
-        console.error(err);
+        console.error('❌ Backend connection error:', err);
       }
     });
   }
@@ -50,10 +53,11 @@ export class DeckListComponent implements OnInit {
       this.deckService.deleteDeck(deck._id!).subscribe({
         next: () => {
           this.decks = this.decks.filter(d => d._id !== deck._id);
+          console.log('✅ Deck deleted');
         },
         error: (err) => {
           this.error = 'Failed to delete deck';
-          console.error(err);
+          console.error('❌ Delete error:', err);
         }
       });
     }
@@ -63,31 +67,43 @@ export class DeckListComponent implements OnInit {
     this.router.navigate(['/builder']);
   }
 
+  // Helper methods for template
   getDeckStats(deck: Deck): { pokemon: number; trainers: number; energy: number } {
-    const pokemon = deck.cards?.filter(dc => dc.card.supertype === 'Pokémon').reduce((sum, dc) => sum + dc.quantity, 0) || 0;
-    const trainers = deck.cards?.filter(dc => dc.card.supertype === 'Trainer').reduce((sum, dc) => sum + dc.quantity, 0) || 0;
-    const energy = deck.cards?.filter(dc => dc.card.supertype === 'Energy').reduce((sum, dc) => sum + dc.quantity, 0) || 0;
+    if (!deck.cards) {
+      return { pokemon: 0, trainers: 0, energy: 0 };
+    }
+    
+    const pokemon = deck.cards.filter(dc => dc.card.supertype === 'Pokémon').reduce((sum, dc) => sum + dc.quantity, 0);
+    const trainers = deck.cards.filter(dc => dc.card.supertype === 'Trainer').reduce((sum, dc) => sum + dc.quantity, 0);
+    const energy = deck.cards.filter(dc => dc.card.supertype === 'Energy').reduce((sum, dc) => sum + dc.quantity, 0);
     
     return { pokemon, trainers, energy };
   }
 
-  getFormatBadgeClass(format: string): string {
-  switch (format) {
-    case 'standard': return 'bg-success';
-    case 'expanded': return 'bg-primary';
-    case 'unlimited': return 'bg-secondary';
-    default: return 'bg-secondary';
+  getTotalCards(deck: Deck): number {
+    return deck.totalCards || 0;
   }
-}
 
-getFormattedDate(date: Date | string | undefined): string {
-  if (!date) return 'Unknown';
-  const d = new Date(date);
-  return d.toLocaleDateString();
-}
+  isDeckValid(deck: Deck): boolean {
+    return deck.isValid ?? true;
+  }
 
-trackByCardId(index: number, deckCard: any): string {
-  return deckCard.card.id;
-}
+  getFormatBadgeClass(format: string): string {
+    switch (format) {
+      case 'standard': return 'bg-success';
+      case 'expanded': return 'bg-primary';
+      case 'unlimited': return 'bg-secondary';
+      default: return 'bg-secondary';
+    }
+  }
 
+  getFormattedDate(date: Date | string | undefined): string {
+    if (!date) return 'Unknown';
+    const d = new Date(date);
+    return d.toLocaleDateString();
+  }
+
+  trackByCardId(index: number, deckCard: any): string {
+    return deckCard.card.id;
+  }
 }

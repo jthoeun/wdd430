@@ -152,14 +152,14 @@ export class CardSearchComponent implements OnInit {
     });
   }
 
-  onCardSelect(card: Card): void {
-    // Check if card is legal in Standard if standardOnly is enabled
-    if (this.standardOnly && card.legalities.standard !== 'legal') {
-      this.error = `${card.name} is not legal in Standard format`;
-      return;
-    }
-    this.cardSelected.emit(card);
+onCardSelect(card: Card): void {
+  // Check for "Standartd Only" checkbox
+  if (this.standardOnly && card.legalities.standard?.toLowerCase() !== 'legal') {
+    this.error = `${card.name} is not legal in Standard format`;
+    return;
   }
+  this.cardSelected.emit(card);
+}
 
   clearFilters(): void {
     this.searchQuery = '';
@@ -208,12 +208,12 @@ export class CardSearchComponent implements OnInit {
     });
   }
 
-  isCardLegal(card: Card): boolean {
-    if (this.standardOnly) {
-      return card.legalities.standard === 'legal';
-    }
-    return true;
+isCardLegal(card: Card): boolean {
+  if (this.standardOnly) {
+    return card.legalities.standard?.toLowerCase() === 'legal';
   }
+  return true;
+}
 
   getSuperTypeBadgeColor(supertype: string): string {
   switch (supertype) {

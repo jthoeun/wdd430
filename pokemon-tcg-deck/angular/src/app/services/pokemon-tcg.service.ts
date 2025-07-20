@@ -37,9 +37,9 @@ export class PokemonTcgService {
     });
   }
 
-  // New method to search only Standard-legal cards
+  // search only Standard-legal cards
   searchStandardCards(params: CardSearchParams): Observable<ApiResponse<Card>> {
-    const standardQuery = params.q ? `${params.q} legalities.standard:legal` : 'legalities.standard:legal';
+    const standardQuery = params.q ? `${params.q} legalities.standard:Legal` : 'legalities.standard:Legal';
     
     return this.searchCards({
       ...params,
@@ -67,7 +67,8 @@ export class PokemonTcgService {
 
   searchCardsByName(name: string, page: number = 1, standardOnly: boolean = true): Observable<ApiResponse<Card>> {
     const baseQuery = `name:"*${name}*"`;
-    const query = standardOnly ? `${baseQuery} legalities.standard:legal` : baseQuery;
+    // FIXED: Use capital "Legal" for API
+    const query = standardOnly ? `${baseQuery} legalities.standard:Legal` : baseQuery;
     
     return this.searchCards({
       q: query,
@@ -79,7 +80,8 @@ export class PokemonTcgService {
 
   searchCardsBySet(setId: string, page: number = 1, standardOnly: boolean = true): Observable<ApiResponse<Card>> {
     const baseQuery = `set.id:${setId}`;
-    const query = standardOnly ? `${baseQuery} legalities.standard:legal` : baseQuery;
+    // FIXED: Use capital "Legal" for API
+    const query = standardOnly ? `${baseQuery} legalities.standard:Legal` : baseQuery;
     
     return this.searchCards({
       q: query,
@@ -91,7 +93,8 @@ export class PokemonTcgService {
 
   searchCardsByType(supertype: string, page: number = 1, standardOnly: boolean = true): Observable<ApiResponse<Card>> {
     const baseQuery = `supertype:${supertype}`;
-    const query = standardOnly ? `${baseQuery} legalities.standard:legal` : baseQuery;
+    // FIXED: Use capital "Legal" for API
+    const query = standardOnly ? `${baseQuery} legalities.standard:Legal` : baseQuery;
     
     return this.searchCards({
       q: query,
@@ -103,7 +106,8 @@ export class PokemonTcgService {
 
   // Get only Standard-legal sets
   getStandardSets(): Observable<ApiResponse<CardSet>> {
-    return this.http.get<ApiResponse<CardSet>>(`${this.baseUrl}/sets?q=legalities.standard:legal`, {
+    // FIXED: Use capital "Legal" for API
+    return this.http.get<ApiResponse<CardSet>>(`${this.baseUrl}/sets?q=legalities.standard:Legal`, {
       headers: this.getHeaders()
     });
   }

@@ -1,9 +1,7 @@
-// src/app/services/deck.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, of } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { Deck, DeckCard, Card } from '../models/tcg-models';
-import { MOCK_DECKS } from '../components/deck-list/MOCK-DECKS';
 
 @Injectable({
   providedIn: 'root'
@@ -15,86 +13,28 @@ export class DeckService {
 
   constructor(private http: HttpClient) {}
 
+  
   getAllDecks(): Observable<Deck[]> {
-    // TODO: Uncomment when backend is ready
-    // return this.http.get<Deck[]>(this.apiUrl);
-    
-    // MOCK DATA - Remove when backend is ready
-    return of(MOCK_DECKS);
+    return this.http.get<Deck[]>(this.apiUrl);
   }
 
   getDeck(id: string): Observable<Deck> {
-    // TODO: Uncomment when backend is ready
-    // return this.http.get<Deck>(`${this.apiUrl}/${id}`);
-    
-    // MOCK DATA - Remove when backend is ready
-    return new Observable(observer => {
-      const deck = MOCK_DECKS.find(d => d._id === id);
-      if (deck) {
-        observer.next(deck);
-      } else {
-        observer.error('Deck not found');
-      }
-      observer.complete();
-    });
+    return this.http.get<Deck>(`${this.apiUrl}/${id}`);
   }
 
   createDeck(deck: Deck): Observable<Deck> {
-    // TODO: Uncomment when backend is ready
-    // return this.http.post<Deck>(this.apiUrl, deck);
-    
-    // MOCK DATA - Remove when backend is ready
-    const newDeck = { 
-      ...deck, 
-      _id: `deck-${Date.now()}`,
-      totalCards: this.getTotalCards(deck),
-      isValid: this.isDeckValid(deck).valid,
-      validationErrors: this.isDeckValid(deck).errors,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    MOCK_DECKS.push(newDeck);
-    return of(newDeck);
+    return this.http.post<Deck>(this.apiUrl, deck);
   }
 
   updateDeck(id: string, deck: Deck): Observable<Deck> {
-    // TODO: Uncomment when backend is ready
-    // return this.http.put<Deck>(`${this.apiUrl}/${id}`, deck);
-    
-    // MOCK DATA - Remove when backend is ready
-    const index = MOCK_DECKS.findIndex(d => d._id === id);
-    if (index !== -1) {
-      const updatedDeck = { 
-        ...deck, 
-        _id: id,
-        totalCards: this.getTotalCards(deck),
-        isValid: this.isDeckValid(deck).valid,
-        validationErrors: this.isDeckValid(deck).errors,
-        updatedAt: new Date() 
-      };
-      MOCK_DECKS[index] = updatedDeck;
-      return of(updatedDeck);
-    }
-    return new Observable(observer => {
-      observer.error('Deck not found');
-    });
+    return this.http.put<Deck>(`${this.apiUrl}/${id}`, deck);
   }
 
   deleteDeck(id: string): Observable<any> {
-    // TODO: Uncomment when backend is ready
-    // return this.http.delete(`${this.apiUrl}/${id}`);
-    
-    // MOCK DATA - Remove when backend is ready
-    const index = MOCK_DECKS.findIndex(d => d._id === id);
-    if (index !== -1) {
-      MOCK_DECKS.splice(index, 1);
-      return of({ message: 'Deck deleted successfully' });
-    }
-    return new Observable(observer => {
-      observer.error('Deck not found');
-    });
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
+  // State Management
   setCurrentDeck(deck: Deck | null): void {
     this.currentDeckSubject.next(deck);
   }
@@ -103,6 +43,7 @@ export class DeckService {
     return this.currentDeckSubject.value;
   }
 
+  
   addCardToDeck(deck: Deck, card: Card, quantity: number = 1): Deck {
     const existingCard = deck.cards.find(dc => dc.card.id === card.id);
     
@@ -189,13 +130,5 @@ export class DeckService {
       valid: errors.length === 0,
       errors
     };
-  }
-
-
-  /**
-   * Get mock decks for testing
-   */
-  getMockDecks(): Deck[] {
-    return MOCK_DECKS;
   }
 }
